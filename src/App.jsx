@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 
 import { courseData } from './data/courseData'; 
 import Header from './components/Header';
-import CourseSelector from './components/Courseselector'; 
+import CourseSelector from './components/CourseSelector'; 
 import Timetable from './components/Timetable';
 import ConflictModal from './components/ConflictModal';
 import './index.css'; 
