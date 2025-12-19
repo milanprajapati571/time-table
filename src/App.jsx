@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { Github } from 'lucide-react';
 
 import { courseData } from './data/courseData'; 
 import Header from './components/Header';
@@ -29,17 +30,19 @@ function App() {
             }
             return newIds;
         });
-        setGeneratedCourses([]);
+        // We no longer clear generatedCourses here so the table stays visible
     }, []);
 
     const handleGenerate = useCallback(() => {
         const selectedCourses = courses.filter(c => selectedCourseIds.has(c.id));
         const schedule = {};
         let firstConflict = null;
+        let conflictingCourseId = null;
 
         for (const course of selectedCourses) {
             if (!course.timeSlot) continue;
             const timeSlotsRaw = course.timeSlot.split(', ');
+            
             for (const slotRaw of timeSlotsRaw) {
                 const parts = slotRaw.trim().split(' ');
                 if (parts.length < 2) continue;
@@ -50,18 +53,34 @@ function App() {
 
                 const [startTime] = timeRange.split('-');
                 const startHour = parseInt(startTime.split(':')[0], 10);
-                if (isNaN(startHour)) continue;
-
+                
                 const timeSlotStr = `${String(startHour).padStart(2, '0')}:00`;
                 const key = `${day}-${timeSlotStr}`;
-                if (schedule[key] && !firstConflict) {
-                    firstConflict = `Conflict for ${course.subjectName} with ${schedule[key].subjectName} on ${day} at ${timeSlotStr}.`;
+
+                // Check for conflict
+                if (schedule[key]) {
+                    firstConflict = `Conflict: "${course.subjectName}" overlaps with "${schedule[key].subjectName}" on ${day} at ${timeSlotStr}.`;
+                    conflictingCourseId = course.id;
+                    break; 
                 }
                 schedule[key] = course;
             }
+            if (firstConflict) break;
         }
-        setConflictMessage(firstConflict);
-        setGeneratedCourses(selectedCourses);
+
+        if (firstConflict) {
+            setConflictMessage(firstConflict);
+            // Remove ONLY the conflicting course from the selection
+            setSelectedCourseIds(prev => {
+                const updated = new Set(prev);
+                updated.delete(conflictingCourseId);
+                return updated;
+            });
+            // Re-filter the courses to display everything EXCEPT the one that conflicted
+            setGeneratedCourses(selectedCourses.filter(c => c.id !== conflictingCourseId));
+        } else {
+            setGeneratedCourses(selectedCourses);
+        }
     }, [selectedCourseIds, courses]);
 
     const handleClear = useCallback(() => {
@@ -87,14 +106,36 @@ function App() {
                 </div>
                 
                 <div className="w-full">
-                    <Timetable coursesToDisplay={generatedCourses} />
+                    {generatedCourses.length > 0 ? (
+                        <Timetable coursesToDisplay={generatedCourses} />
+                    ) : (
+                        <div className="text-center p-10 bg-white rounded-2xl shadow-inner border-2 border-dashed border-gray-300">
+                            <p className="text-gray-500">Select courses and click "Generate" to view your timetable.</p>
+                        </div>
+                    )}
                 </div>
 
             </main>
+            
             <ConflictModal 
                 conflictMessage={conflictMessage}
                 onClose={() => setConflictMessage(null)} 
             />
+            
+            <footer className="mt-16 pb-8 text-center text-gray-500 text-sm">
+                <div className="flex flex-col items-center gap-3">
+                    <p className="font-medium">Made by Milan Prajapati</p>
+                    <a 
+                        href="https://github.com/milanprajapati571"
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md hover:text-gray-800 transition-all duration-300"
+                    >
+                        <Github size={18} />
+                        <span className="font-semibold">GitHub</span>
+                    </a>
+                </div>
+            </footer>
         </div>
     );
 }

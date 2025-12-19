@@ -102,7 +102,7 @@ const Timetable = ({ coursesToDisplay }) => {
                                     const coursesInCell = timetableGrid[slot]?.[day] || [];
                                     return (
                                         <td key={`${day}-${slot}`} className="p-1 border border-gray-200 align-top h-28">
-                                            <div className="flex flex-col h-full">
+                                            <div className="flex flex-col h-full gap-1">
                                                 {coursesInCell.map((course, index) => (
                                                     <div key={index} className={`rounded-xl ${course.color} ${course.isConflict ? 'ring-2 ring-red-500' : ''} p-2 text-left flex-grow flex flex-col justify-center`}>
                                                         <p className="text-center font-bold text-sm leading-tight">{course.subjectName}</p>
