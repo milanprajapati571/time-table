@@ -30,7 +30,6 @@ function App() {
             }
             return newIds;
         });
-        // We no longer clear generatedCourses here so the table stays visible
     }, []);
 
     const handleGenerate = useCallback(() => {
@@ -57,7 +56,6 @@ function App() {
                 const timeSlotStr = `${String(startHour).padStart(2, '0')}:00`;
                 const key = `${day}-${timeSlotStr}`;
 
-                // Check for conflict
                 if (schedule[key]) {
                     firstConflict = `Conflict: "${course.subjectName}" overlaps with "${schedule[key].subjectName}" on ${day} at ${timeSlotStr}.`;
                     conflictingCourseId = course.id;
@@ -70,13 +68,11 @@ function App() {
 
         if (firstConflict) {
             setConflictMessage(firstConflict);
-            // Remove ONLY the conflicting course from the selection
             setSelectedCourseIds(prev => {
                 const updated = new Set(prev);
                 updated.delete(conflictingCourseId);
                 return updated;
             });
-            // Re-filter the courses to display everything EXCEPT the one that conflicted
             setGeneratedCourses(selectedCourses.filter(c => c.id !== conflictingCourseId));
         } else {
             setGeneratedCourses(selectedCourses);
